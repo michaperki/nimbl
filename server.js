@@ -63,13 +63,23 @@ wss.on('connection', function connection(ws) {
                 game.players.push(playerId);
                 console.log(`Player "${playerId}" joined game "${gameId}"`);
                 ws.send(`Player "${playerId}" joined game "${gameId}"`);
-                // Broadcast the update to all players in the game
-                console.log(games.filter(g => g.id === gameId))
+
+                // Set up game state
+                game.board = [1, 3, 5, 7]; // Example of a board
+                game.turn = game.players[0]; // Set the first player to go first
+                game.status = 'active'; // Set game status to active
+
+                // Broadcast game data to all players in the game
+                const gameData = {
+                    gameId: gameId,
+                    board: game.board,
+                    turn: game.turn,
+                    status: game.status
+                };
                 games.filter(g => g.id === gameId)[0].players.forEach(player => {
-                    console.log(player)
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(`Player "${player}" joined game "${gameId}"`);
+                            client.send(JSON.stringify(gameData));
                         }
                     });
                 });
@@ -77,7 +87,7 @@ wss.on('connection', function connection(ws) {
                 ws.send(`Game "${gameId}" not found`);
             }
         }
-        
+
     });
 
     ws.on('close', function close() {
