@@ -64,8 +64,8 @@ wss.on('connection', function connection(ws) {
                 // Broadcast the update to all players in the game
                 games.filter(g => g.id === gameId).forEach(g => {
                     g.players.forEach(p => {
-                        // Find the WebSocket connection for each player and send the update
-                        const playerWs = wss.clients.find(client => client.playerId === p);
+                        // Convert wss.clients to an array and find the WebSocket connection for each player
+                        const playerWs = [...wss.clients].find(client => client.playerId === p);
                         if (playerWs) {
                             playerWs.send(`Player "${playerId}" joined game "${gameId}"`);
                         }
@@ -75,6 +75,7 @@ wss.on('connection', function connection(ws) {
                 ws.send(`Game "${gameId}" not found`);
             }
         }
+        
     });
 
     ws.on('close', function close() {
