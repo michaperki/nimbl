@@ -44,6 +44,15 @@ wss.on('connection', function connection(ws) {
             games.push(game);
             console.log(`Game "${gameId}" created by player "${playerId}"`);
             ws.send(`Game "${gameId}" created`);
+        } else if (str.startsWith('/get-game')) {
+            const gameId = str.substring(10).trim(); // Remove '/get-game ' from the message
+            const game = games.find(g => g.id === gameId);
+            if (game) {
+                const gameData = `GameData: ${gameId}, ${game.players.join(', ')}`;
+                ws.send(gameData);
+            } else {
+                ws.send(`Game "${gameId}" not found`);
+            }
         }
     });
 
