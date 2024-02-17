@@ -86,6 +86,43 @@ wss.on('connection', function connection(ws) {
             } else {
                 ws.send(`Game "${gameId}" not found`);
             }
+        } else if (str.startsWith('/make-move')) {
+            const [_, gameId, playerId, position] = str.split(' '); // Split the message to extract gameId, playerId, and position
+            const game = games.find(g => g.id === gameId);
+            if (game) {
+                if (game.status === 'active' && game.turn === playerId) {
+                    const pos = parseInt(position);
+                    if (game.board[pos] === pos + 1) {
+                        game.board[pos] = playerId === game.players[0] ? 2 : 4; // Example of a move
+                        game.turn = playerId === game.players[0] ? game.players[1] : game.players[0]; // Switch turns
+                        console.log(`Player "${playerId}" made a move in game "${gameId}"`);
+                        ws.send(`Player "${playerId}" made a move in game "${gameId}"`);
+
+                        // Broadcast game data to all players in the game
+                        const gameData = {
+                            gameId: gameId,
+                            board: game.board,
+                            turn: game.turn,
+                            status: game.status
+                        };
+                        games.filter(g => g.id === gameId)[0].players.forEach(player => {
+                            wss.clients.forEach(client => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify(gameData));
+                                }
+                            });
+                        });
+                    } else {
+                        ws.send(`Position ${pos} is already taken`);
+                    }
+                } else {
+                    ws.send(`It's not your turn`);
+                }
+            } else {
+                ws.send(`Game "${gameId}" not found`);
+            }
+        } else {
+            ws.send('Unknown command');
         }
 
     });
@@ -104,57 +141,6 @@ app.get('/users', (req, res) => {
 app.get('/games', (req, res) => {
     res.json(games);
 });
-
-// Add a route to handle when a player makes a move
-app.post('/make-move', (req, res) => {
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-
-    req.on('end', () => {
-        const { gameId, move } = JSON.parse(body);
-
-        // Find the game by gameId
-        const gameIndex = games.findIndex(game => game.id === gameId);
-
-        if (gameIndex !== -1) {
-            const game = games[gameIndex];
-            
-            // Subtract selected pieces from the appropriate pile
-            move.forEach(moveObj => {
-                const { pileIndex, stoneIndex } = moveObj;
-                if (game.board[pileIndex] > 0) {
-                    game.board[pileIndex] -= 1;
-                }
-            });
-
-            // Send a message to both players with the new game state
-            const gameData = {
-                gameId: gameId,
-                board: game.board,
-                turn: game.turn,
-                status: game.status
-            };
-            game.players.forEach(player => {
-                wss.clients.forEach(client => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify(gameData));
-                    }
-                });
-            });
-
-            // Alternate the turn
-            const nextTurnIndex = (game.players.indexOf(game.turn) + 1) % game.players.length;
-            game.turn = game.players[nextTurnIndex];
-
-            res.status(200).send('Move successful');
-        } else {
-            res.status(404).send(`Game "${gameId}" not found`);
-        }
-    });
-});
-
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
