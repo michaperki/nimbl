@@ -18,7 +18,7 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message);
     
         if (typeof message === 'string') {
-            // Check if the message is a username
+            print('string received')
             if (message.startsWith('/login')) {
                 console.log('Login message received')
                 const username = message.substring(7).trim(); // Remove '/login ' from the message
@@ -29,6 +29,8 @@ wss.on('connection', function connection(ws) {
         } else if (message instanceof Buffer) {
             // Convert the buffer to a string and log it
             console.log('received: %s', message.toString('utf-8'));
+        } else {
+            console.log('Could not identify type of message: %s', message);
         }
     });
 
