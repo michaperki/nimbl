@@ -92,13 +92,16 @@ wss.on('connection', function connection(ws) {
             if (game) {
                 console.log(game)
                 if (game.status === 'active' && game.turn === playerId) {
-                    const pos = parseInt(position);
-                    if (game.board[pos] === pos + 1) {
-                        game.board[pos] = playerId === game.players[0] ? 2 : 4; // Example of a move
-                        game.turn = playerId === game.players[0] ? game.players[1] : game.players[0]; // Switch turns
-                        console.log(`Player "${playerId}" made a move in game "${gameId}"`);
-
-                        // Broadcast game data to all players in the game
+                    // board: [ 1, 3, 5, 7 ],
+                    // /make-move WTDB xxxx [{"pileIndex":3,"stoneIndex":0},{"pileIndex":3,"stoneIndex":1},{"pileIndex":3,"stoneIndex":2}]
+                    const move = JSON.parse(position);
+                    console.log(move)
+                    const pileIndex = move[0].pileIndex;
+                    const numberOfStones = move.length;
+                    const pile = game.board[pileIndex];
+                    if (pile >= numberOfStones) {
+                        game.board[pileIndex] -= numberOfStones;
+                        game.turn = game.players.find(p => p !== playerId);
                         const gameData = {
                             gameId: gameId,
                             board: game.board,
@@ -114,7 +117,7 @@ wss.on('connection', function connection(ws) {
                         });
                     } else {
                         const errorData = {
-                            error: `Position ${pos} is already taken`
+                            error: `Invalid move`
                         };
                         ws.send(JSON.stringify(errorData));
                     }
