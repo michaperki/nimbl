@@ -16,20 +16,20 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-        console.log(typeof message);
 
-        if (message.startsWith('/login')) {
-            const username = message.split(' ')[1];
+        str = message.toString();
+        test = message.body()
+        console.log("test: ", test)
+        console.log("str: ", str)
+
+        // Check if the message is a username
+        if (str.startsWith('/login')) {
+            const username = str.substring(7).trim(); // Remove '/login ' from the message
             users.push(username);
-            console.log('Logged in:', username);
+            console.log(`${username} logged in`);
+            ws.send(`Welcome, ${username}!`);
         }
-        wss.clients.forEach(function each(client) {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
     });
-
 
     ws.on('close', function close() {
         console.log('Client disconnected');
