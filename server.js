@@ -107,45 +107,52 @@ app.get('/games', (req, res) => {
 
 // Add a route to handle when a player makes a move
 app.post('/make-move', (req, res) => {
-    const { gameId, move } = req.body;
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
 
-    // Find the game by gameId
-    const gameIndex = games.findIndex(game => game.id === gameId);
+    req.on('end', () => {
+        const { gameId, move } = JSON.parse(body);
 
-    if (gameIndex !== -1) {
-        const game = games[gameIndex];
-        
-        // Subtract selected pieces from the appropriate pile
-        move.forEach(moveObj => {
-            const { pileIndex, stoneIndex } = moveObj;
-            if (game.board[pileIndex] > 0) {
-                game.board[pileIndex] -= 1;
-            }
-        });
+        // Find the game by gameId
+        const gameIndex = games.findIndex(game => game.id === gameId);
 
-        // Send a message to both players with the new game state
-        const gameData = {
-            gameId: gameId,
-            board: game.board,
-            turn: game.turn,
-            status: game.status
-        };
-        game.players.forEach(player => {
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(gameData));
+        if (gameIndex !== -1) {
+            const game = games[gameIndex];
+            
+            // Subtract selected pieces from the appropriate pile
+            move.forEach(moveObj => {
+                const { pileIndex, stoneIndex } = moveObj;
+                if (game.board[pileIndex] > 0) {
+                    game.board[pileIndex] -= 1;
                 }
             });
-        });
 
-        // Alternate the turn
-        const nextTurnIndex = (game.players.indexOf(game.turn) + 1) % game.players.length;
-        game.turn = game.players[nextTurnIndex];
+            // Send a message to both players with the new game state
+            const gameData = {
+                gameId: gameId,
+                board: game.board,
+                turn: game.turn,
+                status: game.status
+            };
+            game.players.forEach(player => {
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify(gameData));
+                    }
+                });
+            });
 
-        res.status(200).send('Move successful');
-    } else {
-        res.status(404).send(`Game "${gameId}" not found`);
-    }
+            // Alternate the turn
+            const nextTurnIndex = (game.players.indexOf(game.turn) + 1) % game.players.length;
+            game.turn = game.players[nextTurnIndex];
+
+            res.status(200).send('Move successful');
+        } else {
+            res.status(404).send(`Game "${gameId}" not found`);
+        }
+    });
 });
 
 
