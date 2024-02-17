@@ -6,14 +6,29 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// Array to store logged-in usernames
+let users = [];
+
 wss.on('connection', function connection(ws) {
     console.log('Client connected');
 
     ws.send('Welcome to the server!');
 
     ws.on('message', function incoming(message) {
-        console.log('received: %s', message);
-        // You can add code here to respond to the incoming message
+        if (typeof message === 'string') {
+            console.log('received: %s', message);
+
+            // Check if the message is a username
+            if (message.startsWith('/login')) {
+                const username = message.substring(7).trim(); // Remove '/login ' from the message
+                users.push(username);
+                console.log(`${username} logged in`);
+                ws.send(`Welcome, ${username}!`);
+            }
+        } else if (message instanceof Buffer) {
+            // Convert the buffer to a string and log it
+            console.log('received: %s', message.toString('utf-8'));
+        }
     });
 
     ws.on('close', function close() {
@@ -21,9 +36,9 @@ wss.on('connection', function connection(ws) {
     });
 });
 
-
-app.get('/', (req, res) => {
-    res.send('<h1>Hello world</h1>');
+// Endpoint to retrieve logged-in users
+app.get('/users', (req, res) => {
+    res.json(users);
 });
 
 const PORT = process.env.PORT || 3000;
