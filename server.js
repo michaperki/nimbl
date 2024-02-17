@@ -16,7 +16,8 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-        print(typeof message)
+        console.log(typeof message);
+
         if (message.startsWith('/login')) {
             const username = message.split(' ')[1];
             users.push(username);
