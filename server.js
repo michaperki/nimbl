@@ -54,7 +54,9 @@ wss.on('connection', function connection(ws) {
                 ws.send(`Game "${gameId}" not found`);
             }
         } else if (str.startsWith('/join-game')) {
+            console.log('Joining game')
             const [_, gameId, playerId] = str.split(' '); // Split the message to extract gameId and playerId
+            console.log(gameId, playerId)
             const game = games.find(g => g.id === gameId);
             if (game) {
                 game.players.push(playerId);
