@@ -9,6 +9,8 @@ const wss = new WebSocket.Server({ server });
 wss.on('connection', function connection(ws) {
     console.log('Client connected');
 
+    ws.send('Welcome to the server!');
+
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
         // You can add code here to respond to the incoming message
