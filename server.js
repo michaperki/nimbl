@@ -96,7 +96,6 @@ wss.on('connection', function connection(ws) {
                         game.board[pos] = playerId === game.players[0] ? 2 : 4; // Example of a move
                         game.turn = playerId === game.players[0] ? game.players[1] : game.players[0]; // Switch turns
                         console.log(`Player "${playerId}" made a move in game "${gameId}"`);
-                        ws.send(`Player "${playerId}" made a move in game "${gameId}"`);
 
                         // Broadcast game data to all players in the game
                         const gameData = {
@@ -113,13 +112,22 @@ wss.on('connection', function connection(ws) {
                             });
                         });
                     } else {
-                        ws.send(`Position ${pos} is already taken`);
+                        const errorData = {
+                            error: `Position ${pos} is already taken`
+                        };
+                        ws.send(JSON.stringify(errorData));
                     }
                 } else {
-                    ws.send(`It's not your turn`);
+                    const errorData = {
+                        error: `It's not your turn`
+                    };
+                    ws.send(JSON.stringify(errorData));
                 }
             } else {
-                ws.send(`Game "${gameId}" not found`);
+                const errorData = {
+                    error: `Game "${gameId}" not found`
+                };
+                ws.send(JSON.stringify(errorData));
             }
         } else {
             ws.send('Unknown command');
