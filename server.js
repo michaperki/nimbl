@@ -16,23 +16,19 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-    
-        if (typeof message === 'string') {
-            print('string received')
-            if (message.startsWith('/login')) {
-                console.log('Login message received')
-                const username = message.substring(7).trim(); // Remove '/login ' from the message
-                users.push(username);
-                console.log(`${username} logged in`);
-                ws.send(`Welcome, ${username}!`);
-            }
-        } else if (message instanceof Buffer) {
-            // Convert the buffer to a string and log it
-            console.log('received: %s', message.toString('utf-8'));
-        } else {
-            console.log('Could not identify type of message: %s', message);
+        print(typeof message)
+        if (message.startsWith('/login')) {
+            const username = message.split(' ')[1];
+            users.push(username);
+            console.log('Logged in:', username);
         }
+        wss.clients.forEach(function each(client) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(message);
+            }
+        });
     });
+
 
     ws.on('close', function close() {
         console.log('Client disconnected');
