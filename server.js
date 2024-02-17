@@ -101,13 +101,21 @@ wss.on('connection', function connection(ws) {
                     const pile = game.board[pileIndex];
                     if (pile >= numberOfStones) {
                         game.board[pileIndex] -= numberOfStones;
-                        game.turn = game.players.find(p => p !== playerId);
+                        // the game is over when there is 1 stone left in total
+                        if (game.board.reduce((acc, pile) => acc + pile, 0) === 1) {
+                            game.status = 'finished';
+                        } else {
+                            // Switch turns
+                            game.turn = game.players.find(p => p !== playerId);
+                        }
+                        // Broadcast game data to all players in the game
                         const gameData = {
                             gameId: gameId,
                             board: game.board,
                             turn: game.turn,
                             status: game.status
                         };
+
                         games.filter(g => g.id === gameId)[0].players.forEach(player => {
                             wss.clients.forEach(client => {
                                 if (client.readyState === WebSocket.OPEN) {
