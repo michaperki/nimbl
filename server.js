@@ -64,12 +64,12 @@ wss.on('connection', function connection(ws) {
                 console.log(`Player "${playerId}" joined game "${gameId}"`);
                 ws.send(`Player "${playerId}" joined game "${gameId}"`);
                 // Broadcast the update to all players in the game
-                games.filter(g => g.id === gameId).forEach(g => {
-                    g.players.forEach(p => {
-                        // Convert wss.clients to an array and find the WebSocket connection for each player
-                        const playerWs = [...wss.clients].find(client => client.playerId === p);
-                        if (playerWs) {
-                            playerWs.send(`Player "${playerId}" joined game "${gameId}"`);
+                console.log(games.filter(g => g.id === gameId))
+                games.filter(g => g.id === gameId)[0].players.forEach(player => {
+                    console.log(player)
+                    wss.clients.forEach(client => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(`Player "${player}" joined game "${gameId}"`);
                         }
                     });
                 });
