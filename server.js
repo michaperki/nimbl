@@ -53,6 +53,16 @@ wss.on('connection', function connection(ws) {
             } else {
                 ws.send(`Game "${gameId}" not found`);
             }
+        } else if (str.startsWith('/join-game')) {
+            const [_, gameId, playerId] = str.split(' '); // Split the message to extract gameId and playerId
+            const game = games.find(g => g.id === gameId);
+            if (game) {
+                game.players.push(playerId);
+                console.log(`Player "${playerId}" joined game "${gameId}"`);
+                ws.send(`Player "${playerId}" joined game "${gameId}"`);
+            } else {
+                ws.send(`Game "${gameId}" not found`);
+            }
         }
     });
 
