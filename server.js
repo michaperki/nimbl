@@ -11,12 +11,14 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
+        // You can add code here to respond to the incoming message
     });
 
     ws.on('close', function close() {
         console.log('Client disconnected');
     });
 });
+
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello world</h1>');
