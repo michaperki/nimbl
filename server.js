@@ -105,6 +105,45 @@ app.get('/games', (req, res) => {
     res.json(games);
 });
 
+// Add a route to handle when a player makes a move
+app.post('/make-move', (req, res) => {
+    const { gameId, move } = req.body;
+
+    // Find the game by gameId
+    const gameIndex = games.findIndex(game => game.id === gameId);
+
+    if (gameIndex !== -1) {
+        const game = games[gameIndex];
+        
+        // Subtract selected pieces from the appropriate pile
+        // Implement move logic here
+
+        // Send a message to both players with the new game state
+        const gameData = {
+            gameId: gameId,
+            board: game.board,
+            turn: game.turn,
+            status: game.status
+        };
+        game.players.forEach(player => {
+            wss.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(gameData));
+                }
+            });
+        });
+
+        // Alternate the turn
+        const nextTurnIndex = (game.players.indexOf(game.turn) + 1) % game.players.length;
+        game.turn = game.players[nextTurnIndex];
+
+        res.status(200).send('Move successful');
+    } else {
+        res.status(404).send(`Game "${gameId}" not found`);
+    }
+});
+
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
