@@ -18,8 +18,6 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message);
 
         str = message.toString();
-        test = message.body()
-        console.log("test: ", test)
         console.log("str: ", str)
 
         // Check if the message is a username
