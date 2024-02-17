@@ -116,7 +116,12 @@ app.post('/make-move', (req, res) => {
         const game = games[gameIndex];
         
         // Subtract selected pieces from the appropriate pile
-        // Implement move logic here
+        move.forEach(moveObj => {
+            const { pileIndex, stoneIndex } = moveObj;
+            if (game.board[pileIndex] > 0) {
+                game.board[pileIndex] -= 1;
+            }
+        });
 
         // Send a message to both players with the new game state
         const gameData = {
