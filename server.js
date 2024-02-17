@@ -90,6 +90,7 @@ wss.on('connection', function connection(ws) {
             const [_, gameId, playerId, position] = str.split(' '); // Split the message to extract gameId, playerId, and position
             const game = games.find(g => g.id === gameId);
             if (game) {
+                console.log(game)
                 if (game.status === 'active' && game.turn === playerId) {
                     const pos = parseInt(position);
                     if (game.board[pos] === pos + 1) {
