@@ -15,9 +15,9 @@ wss.on('connection', function connection(ws) {
     ws.send('Welcome to the server!');
 
     ws.on('message', function incoming(message) {
+        console.log('received: %s', message);
+    
         if (typeof message === 'string') {
-            console.log('received: %s', message);
-
             // Check if the message is a username
             if (message.startsWith('/login')) {
                 const username = message.substring(7).trim(); // Remove '/login ' from the message
